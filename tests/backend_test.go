@@ -3,6 +3,8 @@ package tests
 import (
 	"context"
 	"fmt"
+	"github.com/microsoft/durabletask-go/backend/postgres"
+	"os"
 	"reflect"
 	"runtime"
 	"testing"
@@ -23,12 +25,21 @@ var (
 	logger                = backend.DefaultLogger()
 	sqliteInMemoryOptions = sqlite.NewSqliteOptions("")
 	sqliteFileOptions     = sqlite.NewSqliteOptions("test.sqlite3")
+	postgresOptions       = postgres.NewPostgresOptions(getPostgresHost(), 5432, "postgres", "postgres", "postgres")
 )
+
+func getPostgresHost() string {
+	if os.Getenv("CI") == "true" {
+		return "postgres"
+	}
+
+	return "localhost"
+}
 
 var backends = []backend.Backend{
 	sqlite.NewSqliteBackend(sqliteFileOptions, logger),
 	sqlite.NewSqliteBackend(sqliteInMemoryOptions, logger),
-	//postgres.NewPostgresBackend(nil, logger), // Requires a local Postgres instance running with host=localhost, user=postgres, password=postgres, dbname=postgres
+	postgres.NewPostgresBackend(postgresOptions, logger), // Requires a local Postgres instance running with user=postgres, password=postgres, dbname=postgres. host is "postgres" in CI and "localhost" locally.
 }
 
 var completionStatusValues = []protos.OrchestrationStatus{
