@@ -40,6 +40,8 @@ func getRunnableBackends() []backend.Backend {
 	return runnableBackends
 }
 
+var backends = getRunnableBackends()
+
 var completionStatusValues = []protos.OrchestrationStatus{
 	protos.OrchestrationStatus_ORCHESTRATION_STATUS_COMPLETED,
 	protos.OrchestrationStatus_ORCHESTRATION_STATUS_TERMINATED,
@@ -54,7 +56,7 @@ const (
 // Test_NewOrchestrationWorkItem_Single enqueues a single work item into the backend
 // store and attempts to fetch it immediately afterwards.
 func Test_NewOrchestrationWorkItem_Single(t *testing.T) {
-	for i, be := range getRunnableBackends() {
+	for i, be := range backends {
 		initTest(t, be, i, true)
 
 		expectedID := "myinstance"
@@ -91,7 +93,7 @@ func Test_NewOrchestrationWorkItem_Single(t *testing.T) {
 // Test_NewOrchestrationWorkItem_Multiple enqueues multiple work items into the sqlite backend
 // store and then attempts to fetch them one-at-a-time, in order.
 func Test_NewOrchestrationWorkItem_Multiple(t *testing.T) {
-	for i, be := range getRunnableBackends() {
+	for i, be := range backends {
 		initTest(t, be, i, true)
 
 		const WorkItems = 4
@@ -132,7 +134,7 @@ func Test_NewOrchestrationWorkItem_Multiple(t *testing.T) {
 }
 
 func Test_CompleteOrchestration(t *testing.T) {
-	for i, be := range getRunnableBackends() {
+	for i, be := range backends {
 		for _, expectedStatus := range completionStatusValues {
 			initTest(t, be, i, true)
 
@@ -191,7 +193,7 @@ func Test_ScheduleActivityTasks(t *testing.T) {
 	expectedResult := "42"
 	expectedTaskID := int32(7)
 
-	for i, be := range getRunnableBackends() {
+	for i, be := range backends {
 		initTest(t, be, i, true)
 
 		wi, err := be.GetActivityWorkItem(ctx)
@@ -244,7 +246,7 @@ func Test_ScheduleActivityTasks(t *testing.T) {
 }
 
 func Test_ScheduleTimerTasks(t *testing.T) {
-	for i, be := range getRunnableBackends() {
+	for i, be := range backends {
 		initTest(t, be, i, true)
 
 		timerDuration := 1 * time.Second
@@ -289,7 +291,7 @@ func Test_ScheduleTimerTasks(t *testing.T) {
 func Test_AbandonOrchestrationWorkItem(t *testing.T) {
 	iid := "abc"
 
-	for i, be := range getRunnableBackends() {
+	for i, be := range backends {
 		initTest(t, be, i, true)
 
 		if createOrchestrationInstance(t, be, iid) {
@@ -304,7 +306,7 @@ func Test_AbandonOrchestrationWorkItem(t *testing.T) {
 }
 
 func Test_AbandonActivityWorkItem(t *testing.T) {
-	for i, be := range getRunnableBackends() {
+	for i, be := range backends {
 		initTest(t, be, i, true)
 
 		getOrchestratorActions := func() []*protos.OrchestratorAction {
@@ -340,7 +342,7 @@ func Test_AbandonActivityWorkItem(t *testing.T) {
 }
 
 func Test_UninitializedBackend(t *testing.T) {
-	for i, be := range getRunnableBackends() {
+	for i, be := range backends {
 		initTest(t, be, i, false)
 
 		err := be.AbandonOrchestrationWorkItem(ctx, nil)
@@ -361,7 +363,7 @@ func Test_UninitializedBackend(t *testing.T) {
 }
 
 func Test_GetNonExistingMetadata(t *testing.T) {
-	for i, be := range getRunnableBackends() {
+	for i, be := range backends {
 		initTest(t, be, i, true)
 
 		_, err := be.GetOrchestrationMetadata(ctx, api.InstanceID("bogus"))
@@ -370,7 +372,7 @@ func Test_GetNonExistingMetadata(t *testing.T) {
 }
 
 func Test_PurgeOrchestrationState(t *testing.T) {
-	for i, be := range getRunnableBackends() {
+	for i, be := range backends {
 		initTest(t, be, i, true)
 
 		expectedResult := "done!"
